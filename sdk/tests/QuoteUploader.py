@@ -195,7 +195,7 @@ class TestAccessShrine(TestCase):
             instrument_quotes.append(models.UpsertQuoteRequest(
                 quote_id=models.QuoteId(
                     provider='DataScope',
-                    price_source='USDRC',
+                    price_source='',
                     instrument_id=row['Figi'],
                     instrument_id_type='Figi',
                     quote_type='Price',
@@ -221,7 +221,7 @@ class TestAccessShrine(TestCase):
                 models.UpsertQuoteRequest(
                     quote_id=models.QuoteId(
                         provider='DataScope',
-                        price_source='USDRC',
+                        price_source='',
                         instrument_id=fx_rate['pair'],
                         instrument_id_type='CurrencyPair',
                         quote_type='Rate',
@@ -240,7 +240,7 @@ class TestAccessShrine(TestCase):
                 models.UpsertQuoteRequest(
                     quote_id=models.QuoteId(
                         provider='DataScope',
-                        price_source='USDRC',
+                        price_source='',
                         instrument_id=reverse_pair,
                         instrument_id_type='CurrencyPair',
                         quote_type='Rate',
@@ -264,21 +264,18 @@ class TestAccessShrine(TestCase):
                     models.MarketDataKeyRule(
                         key='Equity.Figi.*',
                         supplier='DataScope',
-                        price_source='USDRC',
                         data_scope=analyst_scope_code,
                         quote_type='Price',
                         price_side='Mid'),
                     models.MarketDataKeyRule(
                         key='Equity.LusidInstrumentId.*',
                         supplier='DataScope',
-                        price_source='USDRC',
                         data_scope=analyst_scope_code,
                         quote_type='Price',
                         price_side='Mid'),
                     models.MarketDataKeyRule(
                         key='Fx.CurrencyPair.*',
                         supplier='DataScope',
-                        price_source='USDRC',
                         data_scope=analyst_scope_code,
                         quote_type='Rate',
                         price_side='Mid')

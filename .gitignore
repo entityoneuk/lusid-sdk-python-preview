@@ -192,6 +192,7 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+generated/
 
 # End of https://www.gitignore.io/api/macos,python,pycharm
 
