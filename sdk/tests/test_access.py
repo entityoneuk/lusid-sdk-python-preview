@@ -53,8 +53,28 @@ class TestAccessShrine(TestCase):
 
         # Load our multiple configuration details from the local secrets file
         dir_path = os.path.dirname(os.path.realpath(__file__))
+        # with open(os.path.join(dir_path, "secrets.json"), "r") as secrets:
+        #     config = json.load(secrets)
+        #
+        # token_url = os.getenv("FBN_TOKEN_URL", config["api"]["tokenUrl"])
+        # 3 users - restricted, admin and super
 
-        cls.client_super = ApiClientBuilder().build("secretsprod.json")
+        # username_super = os.getenv("FBN_USERNAME", config["api"]["username_super"])
+        # username_admin = os.getenv("FBN_USERNAME", config["api"]["username_admin"])
+        # username_restricted = os.getenv("FBN_USERNAME", config["api"]["username_restricted"])
+        #
+        # password_super = pathname2url(os.getenv("FBN_PASSWORD", config["api"]["password_super"]))
+        # password_admin = pathname2url(os.getenv("FBN_PASSWORD", config["api"]["password_admin"]))
+        # password_restricted = pathname2url(os.getenv("FBN_PASSWORD", config["api"]["password_restricted"]))
+        #
+        # client_id = pathname2url(os.getenv("FBN_CLIENT_ID", config["api"]["clientId"]))
+        # client_secret = pathname2url(os.getenv("FBN_CLIENT_SECRET", config["api"]["clientSecret"]))
+        #
+
+        # create multiple configured API clients
+        cls.client_super = ApiClientBuilder().build("secrets-super.json")
+        cls.client_admin = ApiClientBuilder().build("secrets-admin.json")
+        cls.client_restricted = ApiClientBuilder().build("secrets-restricted.json")
 
         user_list = {"restricted": cls.client_restricted,"administrator": cls.client_admin}
 
@@ -64,9 +84,7 @@ class TestAccessShrine(TestCase):
         cls.property_definitions = lusid.PropertyDefinitionsApi(cls.client_super)
         cls.portfolios = lusid.PortfoliosApi(cls.client_super)
         cls.analytic_stores = lusid.AnalyticsStoresApi(cls.client_super)
-        cls.quote_store = lusid.QuotesApi(cls.client_super)
         cls.aggregation = lusid.AggregationApi(cls.client_super)
-        cls.search = lusid.SearchApi(cls.client_super)
 
 
         # Do the same for Shrine - note the call is slightly different for now, with the token being passed in later
@@ -86,23 +104,260 @@ class TestAccessShrine(TestCase):
 
         # Create scope
         uuid_gen = uuid.uuid4()
-        scope = "Testdemo"
-        analyst_scope_code = scope          # + "-" + str(uuid_gen)
+        scope = "finbourne"
+        analyst_scope_code = 'notepad-access-' + scope          # + "-" + str(uuid_gen)
 
         ################
         # Cut-down or full sized test?
         # Full-sized test runs from 1/1/17 to 31/12/18 (2 full years)
         # Short from 1/1/17 to 31/3/17 (3 months)
+        cutdown = True
+        if cutdown:
+            close_file = 'data/company_closing_prices_no_divis_short.csv'
+            transactions_file = 'data/DJIItransactions_short.csv'
+            cls.INSTRUMENT_FILE = 'data/DOW Figis_short.csv'
+            transaction_portfolio_code = 'DJII_30s'
+            termination_date = datetime(2017, 4, 4, tzinfo=pytz.utc)
+        else:
+            close_file = 'data/company_closing_prices_no_divis_matched.csv'
+            transactions_file = 'data/DJIItransactions.csv'
+            cls.INSTRUMENT_FILE = 'data/DOW Figis.csv'
+            transaction_portfolio_code = 'DJII_30f'
+            termination_date = datetime(2018, 12, 31, tzinfo=pytz.utc)
 
-        close_file = 'data/Global Equity closes.csv'
-        transactions_file = 'data/DJIItransactions_short.csv'
-        cls.INSTRUMENT_FILE = 'data/GlobalEquityFigis.csv'
-        transaction_portfolio_code = 'Global-Equity'
-        fx_file = 'data/FXCloses.csv'
-        termination_date = datetime(2017, 4, 4, tzinfo=pytz.utc)
-        valuation_date = datetime(2019, 4, 15, tzinfo=pytz.utc)
+        today_date = datetime(2018, 12, 31, tzinfo=pytz.utc)
 
-        today_date = datetime(2019, 6, 7, tzinfo=pytz.utc)
+        ##################################
+        # Create policies with access, timing etc (really show off shrine capabilities)
+        # Create roles with groups of these policies
+        # In Okta, create accounts. Attached roles to these accounts
+        # 1 We first create policies, which describe the permissions (e.g r access to LUSID, r-w to SHRINE)
+        # 2 We create roles, which are collections of policies
+        # 3 OKTA has been manually updated to create two users, cleric01 and manager01 and two groups
+        # The secrets file contains login
+
+        # Name the policies and roles
+        policy_code_allow = "ViewPolicyAllow"
+        policy_code_restricted = "ViewPolicyRestricted"
+        policy_code_restricted1 = "ViewPolicyRestricted1"
+        role_code_restrict = "clerical-limited-access"
+        role_code_allow = "manager-all-access"
+
+        # first delete policies if they exist
+        # delete the policy if it exists
+        def try_delete_resource(f):
+            try:
+                f()
+            except Exception as ex:
+                error = ex.message
+                print("WARNING: " + error)
+
+        try_delete_resource(lambda: cls.shrine_client.api_policies_by_code_delete(policy_code_restricted))
+        try_delete_resource(lambda: cls.shrine_client.api_policies_by_code_delete(policy_code_restricted1))
+        try_delete_resource(lambda: cls.shrine_client.api_policies_by_code_delete(policy_code_allow))
+        try_delete_resource(lambda: cls.shrine_client.api_roles_by_code_delete(role_code_allow))
+        try_delete_resource(lambda: cls.shrine_client.api_roles_by_code_delete(role_code_restrict))
+
+        # Create a policy
+
+        policy_activate_date = datetime(2016, 1, 1, tzinfo=pytz.utc)
+        policy_deactivate_date = datetime(2020, 1, 1, tzinfo=pytz.utc)
+
+        policy_from_date = datetime(2017, 1, 1, tzinfo=pytz.utc)
+        policy_to_date = datetime(2018, 1, 1, tzinfo=pytz.utc)
+
+        model_when_spec = shrine_models.WhenSpec()
+        model_when_spec.activate = policy_activate_date
+        model_when_spec.deactivate = policy_deactivate_date
+        model_for_spec = shrine_models.ForSpec()
+        effective_range = shrine_models.EffectiveRange(from_property=policy_from_date, to=policy_to_date)
+        #effective_relative = shrine_models.EffectiveRange(from_property=policy_from_date, to=policy_to_date)
+        effective_quality = shrine_models.EffectiveDateHasQuality(quality="IsFirstDayOfAnyMonth")
+        #model_for_spec.effective_range = effective_range
+        model_for_spec.effective_date_has_quality = effective_quality
+        #model_for_spec.effective_date_relative = effective_relative
+        action_portfolio = shrine_models.ActionId(scope="default", activity="Any", entity="Portfolio")
+        action_datatype_read = shrine_models.ActionId(scope="default", activity="Read", entity="DataType")
+        action_propertydef_add = shrine_models.ActionId(scope="default", activity="Add", entity="PropertyDefinition")
+        action_propertydef_read = shrine_models.ActionId(scope="default", activity="Read", entity="PropertyDefinition")
+
+        # Here we connect the policy to the portfolio via the scope code.
+        scope_id_path_def = shrine_models.ScopeIdPathDefinition(
+            scope=analyst_scope_code
+        )
+        id_path_def = shrine_models.IdPathDefinition(
+            scope_id_path_definition=scope_id_path_def,
+            category="Identifier",
+            actions=[action_portfolio, action_propertydef_add, action_propertydef_read],
+            name="Notepad-view",
+            description="View notepad"
+        )
+
+        scope_and_code_idp2 = shrine_models.ScopeAndCodeIdPathDefinition("default", "string")
+        id_path_def2 = shrine_models.IdPathDefinition(
+            scope_and_code_id_path_definition=scope_and_code_idp2,
+            category="Identifier",
+            actions=[action_datatype_read],
+            name="Notepad-view",
+            description="View notepad"
+        )
+
+        scope_id_path_def3 = shrine_models.ScopeIdPathDefinition(
+            scope="default"
+        )
+        id_path_def3 = shrine_models.IdPathDefinition(
+            scope_id_path_definition=scope_id_path_def3,
+            category="Identifier",
+            actions=[action_propertydef_read],
+            name="Notepad-view",
+            description="View notepad"
+        )
+
+        scope_and_code_idp4 = shrine_models.ScopeAndCodeIdPathDefinition("default", "*")
+        id_path_def4 = shrine_models.IdPathDefinition(
+            scope_and_code_id_path_definition=scope_and_code_idp4,
+            category="Identifier",
+            actions=[action_datatype_read],
+            name="Notepad-view",
+            description="View notepad"
+        )
+        # need a further path for the 'restrict' 'portfolio' policy
+        id_path_def5 = shrine_models.IdPathDefinition(
+            scope_id_path_definition=scope_id_path_def,
+            category="Identifier",
+            actions=[action_portfolio],
+            name="Notepad-view",
+            description="View notepad"
+        )
+
+        path_view = shrine_models.PathDefinition(id_path_definition=id_path_def)
+        path_view2 = shrine_models.PathDefinition(id_path_definition=id_path_def2)
+        path_view3 = shrine_models.PathDefinition(id_path_definition=id_path_def3)
+        path_view4 = shrine_models.PathDefinition(id_path_definition=id_path_def4)
+        path_view5 = shrine_models.PathDefinition(id_path_definition=id_path_def5)
+
+        # Last path definition is for the LUSID library of API calls, this is necessary for valuation later
+        path_values = cls.api_populate_path_values()
+        api_path_definitions = [shrine_models.PathDefinition(id_path_definition=shrine_models.IdPathDefinition(
+            scope_and_code_id_path_definition=shrine_models.ScopeAndCodeIdPathDefinition(
+                scope="LUSID",
+                code=path),
+            category="Identifier",
+            actions=[shrine_models.ActionId(scope="LUSID", activity="Execute", entity="Feature")],
+            name=path,
+            description=path))
+            for path in path_values]
+
+        # Create the policies designed to grant and restrict access to LUSID data within our scope
+        policy_allow = shrine_models.PolicyCreationRequest(
+            code=policy_code_allow,
+            description='Policy to allow viewing of notepad portfolio',
+            applications=['Lusid'],
+            grant='ALLOW',
+            paths=[path_view, path_view2, path_view3, path_view4] + api_path_definitions,
+            when=model_when_spec
+        )
+        policy_restrict = shrine_models.PolicyCreationRequest(
+            code=policy_code_restricted,
+            description='Policy to restrict viewing of notepad portfolio',
+            applications=['Lusid'],
+            grant="ALLOW",
+            paths=[path_view2, path_view3, path_view4] + api_path_definitions,
+            when=model_when_spec
+        )
+        # additional restrict policy for the use case
+        # important...! only attach the forspec to this portfolio access policy
+        # otherwise the other actions will be tested against this criteria
+        policy_restrict1 = shrine_models.PolicyCreationRequest(
+            code=policy_code_restricted1,
+            description='Policy to restrict viewing of notepad portfolio',
+            applications=['Lusid'],
+            grant="ALLOW",
+            paths=[path_view5],
+            when=model_when_spec,
+            for_property=[model_for_spec]
+        )
+
+        # # finally, we need a policy to allow access to the api. this is the same for both accounts
+        # allow_portfolios_policy_request = shrine_models.PolicyCreationRequest(
+        #     code=policy_code_api_execute,
+        #     description="Allows access to API end points",
+        #     applications=['Lusid'],
+        #     grant="Allow",
+        #     paths=path_definitions,
+        #     when=model_when_spec
+        # )
+
+        # tokenid = cls.client_super.configuration.credentials.token
+        # custom_header = {'Authorization': 'Bearer ' + tokenid}
+
+        # check before submitting that you are not duplicating policies, this is not permitted
+        try:
+            response = cls.shrine_client.api_policies_by_code_get(policy_code_allow)
+        except Exception as inst:
+            if inst.error.response.status_code == 404:
+                # Policy does not exist, create.
+                response = cls.shrine_client.api_policies_post(policy_allow)
+        try:
+            response = cls.shrine_client.api_policies_by_code_get(policy_code_restricted)
+        except Exception as inst:
+            if inst.error.response.status_code == 404:
+                # Policy does not exist, create.
+                response = cls.shrine_client.api_policies_post(policy_restrict)
+        try:
+            response = cls.shrine_client.api_policies_by_code_get(policy_code_restricted1)
+        except Exception as inst:
+            if inst.error.response.status_code == 404:
+                # Policy does not exist, create.
+                response = cls.shrine_client.api_policies_post(policy_restrict1)
+        # create a role for someone not allowed to view transactions - clerical level access
+        # and someone allowed full access - manager level
+
+        policyID_cleric = shrine_models.PolicyId(scope="default", code=policy_code_restricted)
+        policyID_cleric1 = shrine_models.PolicyId(scope="default", code=policy_code_restricted1)
+        policyID_manager = shrine_models.PolicyId(scope="default", code=policy_code_allow)
+
+        policyIDresource_cleric = shrine_models.PolicyIdRoleResource(
+            policy_identifiers=[policyID_cleric, policyID_cleric1],
+            policy_collection_identifiers=[]
+        )
+
+        policyIDresource_manager = shrine_models.PolicyIdRoleResource(
+            policy_identifiers=[policyID_manager],
+            policy_collection_identifiers=[]
+        )
+        resource_cleric = shrine_models.RoleResourceRequest(policy_id_role_resource=policyIDresource_cleric)
+        resource_manager = shrine_models.RoleResourceRequest(policy_id_role_resource=policyIDresource_manager)
+
+        role_cleric = shrine_models.RoleCreationRequest(
+            code=role_code_restrict,
+            description="Test role for lesser access",
+            resource=resource_cleric,
+            when=model_when_spec
+        )
+
+        role_manager = shrine_models.RoleCreationRequest(
+            code=role_code_allow,
+            description="Test role for all access",
+            resource=resource_manager,
+            when=model_when_spec
+        )
+
+        # check before submitting that you are not duplicating roles, this is not permitted
+
+        try:
+            response = cls.shrine_client.api_roles_by_code_get(role_code_restrict)
+        except Exception as inst:
+            if inst.error.response.status_code == 404:
+                # Role does not exist, create
+                response = cls.shrine_client.api_roles_post(role_cleric)
+
+        try:
+            response = cls.shrine_client.api_roles_by_code_get(role_code_allow)
+        except Exception as inst:
+            if inst.error.response.status_code == 404:
+                # Role does not exist, create
+                response = cls.shrine_client.api_roles_post(role_manager)
 
 
         # credentials = cls.create_shrine_lusid_clients(username_default, password_default, client_id_default,client_secret_default, token_url)
@@ -128,21 +383,21 @@ class TestAccessShrine(TestCase):
         # The date our portfolios were first created
         portfolio_creation_date = cls.effective_date
 
-        # # Create the request to add our portfolio
-        # transaction_portfolio_request = models.CreateTransactionPortfolioRequest(
-        #     display_name=transaction_portfolio_code,
-        #     code=transaction_portfolio_code,
-        #     base_currency='USD',
-        #     description='Paper transaction portfolio',
-        #     created=portfolio_creation_date)
-        #
-        # # Call LUSID to create our portfolio
-        # try:
-        #     response = cls.portfolios.get_portfolio(scope=analyst_scope_code, code=transaction_portfolio_code)
-        # except Exception as err_response:
-        #     if err_response.status == 404:
-        #         # portfolio does not exist, create.
-        #         response = cls.transaction_portfolios.create_portfolio(scope=analyst_scope_code, create_request=transaction_portfolio_request)
+        # Create the request to add our portfolio
+        transaction_portfolio_request = models.CreateTransactionPortfolioRequest(
+            display_name=transaction_portfolio_code,
+            code=transaction_portfolio_code,
+            base_currency='USD',
+            description='Paper transaction portfolio',
+            created=portfolio_creation_date)
+
+        # Call LUSID to create our portfolio
+        try:
+            response = cls.portfolios.get_portfolio(scope=analyst_scope_code, code=transaction_portfolio_code)
+        except Exception as err_response:
+            if err_response.status == 404:
+                # portfolio does not exist, create.
+                response = cls.transaction_portfolios.create_portfolio(scope=analyst_scope_code, create_request=transaction_portfolio_request)
 
         # Pretty print the response from LUSID
         # prettyprint.portfolio_response(portfolio_response)
@@ -153,210 +408,38 @@ class TestAccessShrine(TestCase):
         # Set the date from which the cash balance will apply to be just after portfolio creation
         holdings_effective_date = cls.effective_date
 
-        end = time.time()
+        # Define our initial cash balance
+        initial_cash_balance = 30000000     # $30mil, so 1mil per line?
 
-
-
-
-        # We now need to add in closing prices for our instruments over the last two years
-        # Import our instrument prices from a CSV file
-
-        instrument_close_prices = pd.read_csv(close_file)
-
-        end = time.time()
-        print('close prices load: ' + str(end - start))
-
-        # Pretty print our pricing
-        # print(instrument_prices.head(n=10))
-
-        # We can now store this information in LUSID in an analytics store.
-        # Note we need a separate store for each closing date
-        # Set our analytics effective dates
-
-        analytics_store_dates = []      # we will need to populate this from the closing prices
-
-        # Create prices via instrument, analytic
-        instrument_quotes = []
-
-        for index, row in instrument_close_prices.iterrows():
-
-            instrument_id = row["Figi"]
-            instrument_id_type = 'Figi'
-
-            # luid = cls.search.instruments_search(
-            #     symbols=[
-            #         models.InstrumentSearchProperty(
-            #             key='Instrument/default/{}'.format(instrument_id_type),
-            #             value=instrument_id)
-            #     ],
-            #     mastered_only=True
-            # )[0].mastered_instruments[0].identifiers['LusidInstrumentId'].value
-
-            instrument_quotes.append(models.UpsertQuoteRequest(
-                quote_id=models.QuoteId(
-                    provider='DataScope',
-                    price_source='',
-                    instrument_id=row['Figi'],
-                    instrument_id_type='Figi',
-                    quote_type='Price',
-                    price_side='Mid'),
-                metric_value=models.MetricValue(
-                    value=row['AdjClose'],
-                    unit=row['Currency']),
-                effective_at=parser.parse(row['Date']).replace(tzinfo=pytz.utc),
-                lineage='InternalSystem'
-            ))
-
-        response = cls.quote_store.upsert_quotes(
-            scope=analyst_scope_code,
-            quotes=instrument_quotes)
-
-        # Prepare an empty list to hold the quote requests
-        fx_quote_requests = []
-        fx_close_prices = pd.read_csv(fx_file)
-        # Iterate over each FX rate
-        for index, fx_rate in fx_close_prices.iterrows():
-            # Add a quote for the FX rate
-            fx_quote_requests.append(
-                models.UpsertQuoteRequest(
-                    quote_id=models.QuoteId(
-                        provider='DataScope',
-                        price_source='',
-                        instrument_id=fx_rate['pair'],
-                        instrument_id_type='CurrencyPair',
-                        quote_type='Rate',
-                        price_side='Mid'),
-                    metric_value=models.MetricValue(
-                        value=fx_rate['rate'],
-                        unit='rate'),
-                    effective_at=parser.parse(fx_rate['date']).replace(tzinfo=pytz.utc),
-                    lineage='InternalSystem'))
-
-            # Create the reverse pair name
-            reverse_pair = '/'.join(fx_rate['pair'].split('/')[::-1])
-
-            # Add a quote for the reverse FX rate
-            fx_quote_requests.append(
-                models.UpsertQuoteRequest(
-                    quote_id=models.QuoteId(
-                        provider='DataScope',
-                        price_source='',
-                        instrument_id=reverse_pair,
-                        instrument_id_type='CurrencyPair',
-                        quote_type='Rate',
-                        price_side='Mid'),
-                    metric_value=models.MetricValue(
-                        value=1 / fx_rate['rate'],
-                        unit='rate'),
-                    effective_at=parser.parse(fx_rate['date']).replace(tzinfo=pytz.utc),
-                    lineage='InternalSystem'))
-
-        # Upsert the quotes into LUSID
-        response = cls.quote_store.upsert_quotes(
-            scope=analyst_scope_code,
-            quotes=fx_quote_requests)
-
-        print('Analytics Set')
-        inline_recipe = models.ConfigurationRecipe(
-            code='quotes_recipe',
-            market=models.MarketContext(
-                market_rules=[
-                    models.MarketDataKeyRule(
-                        key='Equity.Figi.*',
-                        supplier='DataScope',
-                        data_scope=analyst_scope_code,
-                        quote_type='Price',
-                        price_side='Mid'),
-                    models.MarketDataKeyRule(
-                        key='Equity.LusidInstrumentId.*',
-                        supplier='DataScope',
-                        data_scope=analyst_scope_code,
-                        quote_type='Price',
-                        price_side='Mid'),
-                    models.MarketDataKeyRule(
-                        key='Fx.CurrencyPair.*',
-                        supplier='DataScope',
-                        data_scope=analyst_scope_code,
-                        quote_type='Rate',
-                        price_side='Mid')
-                ],
-                suppliers=models.MarketContextSuppliers(
-                    commodity='DataScope',
-                    credit='DataScope',
-                    equity='DataScope',
-                    fx='DataScope',
-                    rates='DataScope'),
-                options=models.MarketOptions(
-                    default_supplier='DataScope',
-                    default_instrument_code_type='Figi',
-                    default_scope=analyst_scope_code)
+        # Create a holding adjustment to set our initial cash balance
+        holding_adjustment = [
+            models.AdjustHoldingRequest(
+                instrument_identifiers={'Instrument/default/Currency': 'USD'},
+                tax_lots=[
+                    models.TargetTaxLotRequest(
+                        units=initial_cash_balance,
+                        cost=models.CurrencyAndAmount(
+                            amount=initial_cash_balance,
+                            currency='USD'),
+                        portfolio_cost=initial_cash_balance,
+                        price=1)
+                ]
             )
-        )
+        ]
 
-        aggregation_request = models.AggregationRequest(
-            inline_recipe=inline_recipe,
-            effective_at=valuation_date,
-            metrics=[
-                models.AggregateSpec(
-                    key='Holding/default/SubHoldingKey',
-                    op='Value'),
-                models.AggregateSpec(
-                    key='Holding/default/Units',
-                    op='Sum'),
-                models.AggregateSpec(
-                    key='Holding/default/Cost',
-                    op='Sum'),
-                models.AggregateSpec(
-                    key='Holding/default/PV',
-                    op='Sum'),
-                models.AggregateSpec(
-                    key='Holding/default/Price',
-                    op='Sum')
-            ],
-            group_by=[
-                'Holding/default/SubHoldingKey'
-            ])
-        try:
-            # Call LUSID to aggregate across all of our portfolios for 'valuation_date'
-            aggregated_portfolio = cls.aggregation.get_aggregation_by_portfolio(
-                scope=analyst_scope_code,
-                code=transaction_portfolio_code,
-                request=aggregation_request)
-
-        except Exception as inst:
-            if inst.error.status == 403:
-                # entitlements rejects this, step to next date
-                print("error")
-            else:
-                raise inst
-
-        query_params = models.TransactionQueryParameters(
-            start_date=cls.effective_date,
-            end_date=today_date,
-            query_mode='TradeDate',
-            show_cancelled_transactions=None)
-
-        transactions_response = cls.transaction_portfolios.build_transactions(
+        # Call LUSID to set our initial cash balance
+        set_holdings_response = cls.transaction_portfolios.set_holdings(
             scope=analyst_scope_code,
             code=transaction_portfolio_code,
-            property_keys=['Instrument/default/Name'],
-            parameters=query_params
-        )
+            effective_at=holdings_effective_date,
+            holding_adjustments=holding_adjustment)
 
-
-        exit()
-
-
-
-
-
-
-
-
-
-
-
-
+        # Pretty print our response from LUSID
+        #prettyprint.set_holdings_response(
+        #    set_holdings_response,
+        #    analyst_scope_code,
+        #    transaction_portfolio_code)
+        end = time.time()
 
         print('Tran portfolio: ' + str(end - start))
         ##################################
@@ -380,15 +463,16 @@ class TestAccessShrine(TestCase):
             value_required=False,
             display_name='strategy',
             data_type_id=models.ResourceId(
-                scope='default',
+                scope='system',
                 code='string')
             )
 
         # Call LUSID to create our property
+        #cls.property_definitions.delete_property_definition(domain='Trade', scope=analyst_scope_code, code='strategy')
         try:
             property_response = cls.property_definitions.get_property_definition(domain='Trade', scope=analyst_scope_code, code='strategy')
         except Exception as err_response:
-            if err_response.error.status == 404:       #why is this different
+            if err_response.status == 404:       #why is this different
                 # property does not exist, create.
                 property_response = cls.property_definitions.create_property_definition(definition=property_request)
 
@@ -456,27 +540,87 @@ class TestAccessShrine(TestCase):
         end = time.time()
         print('and then upsert: ' + str(end - start))
 
+        # We now need to add in closing prices for our instruments over the last two years
+        # Import our instrument prices from a CSV file
 
+        instrument_close_prices = pd.read_csv(close_file)
 
+        end = time.time()
+        print('close prices load: ' + str(end - start))
 
+        # Pretty print our pricing
+        # print(instrument_prices.head(n=10))
 
+        # We can now store this information in LUSID in an analytics store.
+        # Note we need a separate store for each closing date
+        # Set our analytics effective dates
 
+        analytics_store_dates = []      # we will need to populate this from the closing prices
 
+        # Create prices via instrument, analytic
+        instrument_analytics = {}
 
+        for row in instrument_close_prices.iterrows():
+            # group closing prices by date for analytics store
 
+            instrument = row[1]
 
+            if 'Cash' in instrument['Name']:
+                continue
 
+            # Get our Lusid Instrument Id
 
+            luid = cls.instrument_universe[instrument['Name']]['LUID']
+            # check the date to see if anything stands against it yet. If it's new, add a list item (for a new store)
+            if instrument['Date'] not in analytics_store_dates:
+                analytics_store_dates.append(instrument['Date'])
+                instrument_analytics[instrument['Date']] = {}
 
-
-
-
-
-
-
+            # add price/instrument to existing store
+            instrument_analytics[instrument['Date']][instrument['Name']] = models.InstrumentAnalytic(
+                instrument_uid=luid,
+                value=instrument['AdjClose'])
+        end = time.time()
+        print('close prices by date: ' + str(end - start))
 
         time2 = time3 = time4 = time5 = 0
+        for date, date_item in instrument_analytics.items():
+            # Create analytics store request - one required for each date there are prices
+            point1 = time.time()
+            format_date =parser.parse(date).replace(tzinfo=pytz.utc)
+            year = format_date.year
+            month = format_date.month
+            day = format_date.day
 
+            analytics_store_request = models.CreateAnalyticStoreRequest(scope=analyst_scope_code,
+                                                                        date=format_date)
+            point2 = time.time()
+            time2 += (point2 - point1)
+
+            try:
+                store_response = cls.analytic_stores.get_analytic_store(scope=analyst_scope_code, year=year, month=month, day=day)
+            except Exception as err_response:
+                if err_response.status == 404:
+                    # store does not exist, create.
+                    # Call LUSID to create our analytics store
+                    cls.analytic_stores.create_analytic_store(request=analytics_store_request)
+
+            point3 = time.time()
+            time3 += (point3 - point2)
+            days_closes = []
+            for inst_name, instrument_analytic_item in date_item.items():
+                days_closes.append(instrument_analytic_item)
+            point4 = time.time()
+            time4 += (point4 - point3)
+            # Call LUSID to set up our newly created analytics store with our prices
+            cls.analytic_stores.set_analytics(scope=analyst_scope_code,
+                                     year=year,
+                                     month=month,
+                                     day=day,
+                                     data=days_closes)
+            point5 = time.time()
+            time5 += (point5 - point4)
+        end = time.time()
         print('create analytic stores: ' + str(end - start))
         print('create store request: ' + str(time2))
         print('create store: ' + str(time3))
@@ -508,9 +652,9 @@ class TestAccessShrine(TestCase):
             valuation_date = datetime(2017, 1, 1, tzinfo=pytz.utc)
             while valuation_date < termination_date:
                 valuation_date += timedelta(days=1)
-                if (datetime.now() - token_time).seconds > 1500:
-                    # do we need to refresh token ? how do we get out the correct user to call api again?
-                    token_time = datetime.now()
+                # if (datetime.now() - token_time).seconds > 1500:
+                #     # do we need to refresh token ? how do we get out the correct user to call api again?
+                #     token_time = datetime.now()
                 # We wish to see valuations for each business date that has a close
                 # and we'd also like to force valuations for 1st of the month to demonstrate the test case
                 if valuation_date.day != 1:
@@ -555,7 +699,7 @@ class TestAccessShrine(TestCase):
                         request=aggregation_request)
 
                 except Exception as inst:
-                    if inst.error.status == 403:
+                    if inst.status == 403:
                         # entitlements rejects this, step to next date
                         continue
                     else:
@@ -563,7 +707,7 @@ class TestAccessShrine(TestCase):
 
                 query_params = models.TransactionQueryParameters(
                     start_date=cls.effective_date,
-                    end_date=today_date,
+                    end_date=valuation_date,
                     query_mode='TradeDate',
                     show_cancelled_transactions=None)
 
@@ -650,7 +794,8 @@ class TestAccessShrine(TestCase):
     @classmethod
     def tearDownClass(cls):
         for name, item in cls.instrument_universe.items():
-            response = cls.instruments.delete_instrument(InstrumentLoader.FIGI_SCHEME, item['Figi'])
+            # response = cls.client_super.instruments.delete_instrument(InstrumentLoader.FIGI_SCHEME, item['Figi'])
+            print("jhh")
     @classmethod
     def load_instruments_from_file(cls):
         inst_list = pd.read_csv(cls.INSTRUMENT_FILE)
