@@ -72,11 +72,15 @@ class TestAccessShrine(TestCase):
         #
 
         # create multiple configured API clients
-        cls.client_super = ApiClientBuilder().build("secrets-super.json")
-        cls.client_admin = ApiClientBuilder().build("secrets-admin.json")
         cls.client_restricted = ApiClientBuilder().build("secrets-restricted.json")
+        cls.client_admin = ApiClientBuilder().build("secrets-admin.json")
 
-        user_list = {"restricted": cls.client_restricted,"administrator": cls.client_admin}
+        cls.client_super = ApiClientBuilder().build("secrets-super.json")
+
+
+
+
+        user_list = {"administrator": cls.client_admin, "restricted": cls.client_restricted}
 
         # set up the APIs
         cls.instruments = lusid.InstrumentsApi(cls.client_super)
@@ -795,7 +799,7 @@ class TestAccessShrine(TestCase):
     def tearDownClass(cls):
         for name, item in cls.instrument_universe.items():
             # response = cls.client_super.instruments.delete_instrument(InstrumentLoader.FIGI_SCHEME, item['Figi'])
-            print("jhh")
+            print("teardown")
     @classmethod
     def load_instruments_from_file(cls):
         inst_list = pd.read_csv(cls.INSTRUMENT_FILE)

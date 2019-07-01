@@ -86,7 +86,7 @@ class TestAccessShrine(TestCase):
 
         # Create scope
         uuid_gen = uuid.uuid4()
-        scope = "Testdemo"
+        scope = "fbnExamples1"
         analyst_scope_code = scope          # + "-" + str(uuid_gen)
 
         ################
@@ -99,6 +99,8 @@ class TestAccessShrine(TestCase):
         cls.INSTRUMENT_FILE = 'data/GlobalEquityFigis.csv'
         transaction_portfolio_code = 'Global-Equity'
         fx_file = 'data/FXCloses.csv'
+
+
         termination_date = datetime(2017, 4, 4, tzinfo=pytz.utc)
         valuation_date = datetime(2019, 4, 15, tzinfo=pytz.utc)
 
@@ -112,7 +114,7 @@ class TestAccessShrine(TestCase):
         # a new implemenation of complexIDpath from shrine
 
         inst_list = cls.load_instruments_from_file()
-        cls.upsert_intruments(inst_list)
+        #cls.upsert_intruments(inst_list)
 
         # for_property = [model_for_spec]  # temporal restriction
         # Start the clock on timing
@@ -207,9 +209,9 @@ class TestAccessShrine(TestCase):
                 lineage='InternalSystem'
             ))
 
-        response = cls.quote_store.upsert_quotes(
-            scope=analyst_scope_code,
-            quotes=instrument_quotes)
+        # response = cls.quote_store.upsert_quotes(
+        #     scope=analyst_scope_code,
+        #     quotes=instrument_quotes)
 
         # Prepare an empty list to hold the quote requests
         fx_quote_requests = []
@@ -224,7 +226,7 @@ class TestAccessShrine(TestCase):
                         price_source='',
                         instrument_id=fx_rate['pair'],
                         instrument_id_type='CurrencyPair',
-                        quote_type='Rate',
+                        quote_type='Price',
                         price_side='Mid'),
                     metric_value=models.MetricValue(
                         value=fx_rate['rate'],
@@ -243,7 +245,7 @@ class TestAccessShrine(TestCase):
                         price_source='',
                         instrument_id=reverse_pair,
                         instrument_id_type='CurrencyPair',
-                        quote_type='Rate',
+                        quote_type='Price',
                         price_side='Mid'),
                     metric_value=models.MetricValue(
                         value=1 / fx_rate['rate'],
@@ -252,9 +254,9 @@ class TestAccessShrine(TestCase):
                     lineage='InternalSystem'))
 
         # Upsert the quotes into LUSID
-        response = cls.quote_store.upsert_quotes(
-            scope=analyst_scope_code,
-            quotes=fx_quote_requests)
+        # response = cls.quote_store.upsert_quotes(
+        #     scope=analyst_scope_code,
+        #     quotes=fx_quote_requests)
 
         print('Analytics Set')
         inline_recipe = models.ConfigurationRecipe(
@@ -264,19 +266,19 @@ class TestAccessShrine(TestCase):
                     models.MarketDataKeyRule(
                         key='Equity.Figi.*',
                         supplier='DataScope',
-                        data_scope=analyst_scope_code,
+                        data_scope='MarketData',
                         quote_type='Price',
                         price_side='Mid'),
                     models.MarketDataKeyRule(
                         key='Equity.LusidInstrumentId.*',
                         supplier='DataScope',
-                        data_scope=analyst_scope_code,
+                        data_scope='MarketData',
                         quote_type='Price',
                         price_side='Mid'),
                     models.MarketDataKeyRule(
                         key='Fx.CurrencyPair.*',
                         supplier='DataScope',
-                        data_scope=analyst_scope_code,
+                        data_scope='MarketData',
                         quote_type='Rate',
                         price_side='Mid')
                 ],
@@ -353,299 +355,6 @@ class TestAccessShrine(TestCase):
 
 
 
-
-
-
-
-
-        print('Tran portfolio: ' + str(end - start))
-        ##################################
-        # Allow our analysts to trade across their tradeable instrument universe
-        # and add transactions to their transaction portfolio
-        # Import transactions from DJII transactions. We have 30 instruments with hidden strategies to investigate
-
-        djii_transactions = cls.load_transactions_from_file(transactions_file)
-
-        end = time.time()
-
-        print('Tran load from file: ' + str(end - start))
-
-        # create the strategy property. Although strategies are currently set to none for all transactions,
-        # this property is created to allow trades to be identified and categorised at a later date
-        # Create a request to define our strategy property
-        property_request = models.CreatePropertyDefinitionRequest(
-            domain='Trade',
-            scope=analyst_scope_code,
-            code='strategy',
-            value_required=False,
-            display_name='strategy',
-            data_type_id=models.ResourceId(
-                scope='default',
-                code='string')
-            )
-
-        # Call LUSID to create our property
-        try:
-            property_response = cls.property_definitions.get_property_definition(domain='Trade', scope=analyst_scope_code, code='strategy')
-        except Exception as err_response:
-            if err_response.error.status == 404:       #why is this different
-                # property does not exist, create.
-                property_response = cls.property_definitions.create_property_definition(definition=property_request)
-
-        # Grab the key off the response to use when referencing this property in other LUSID calls
-        strategy_property_key = property_response.key
-
-        #'Trade/notepad-access-finbourne/strategy'
-        # Pretty print our strategy property key
-        # prettyprint.heading('Strategy Property Key: ', strategy_property_key)
-
-        # Now we wish to upsert our trades into LUSID so we can start our analysis
-
-        # Initialise a list to hold our transactions
-        batch_transaction_requests = []
-
-        # Iterate over the transactions for each portfolio
-        for transaction_id, transaction in djii_transactions.items():
-
-            if 'Cash' in transaction['instrument_name']:
-                identifier_key = 'Instrument/default/Currency'
-            else:
-                identifier_key = 'Instrument/default/Figi'
-
-            batch_transaction_requests.append(
-                models.TransactionRequest(
-                    transaction_id=transaction_id,
-                    type=transaction['type'],
-                    instrument_identifiers={
-                        identifier_key: transaction['instrument_uid']},
-                    transaction_date=transaction['transaction_date'],
-                    settlement_date=transaction['settlement_date'],
-                    units=transaction['units'],
-                    transaction_price=models.TransactionPrice(
-                        price=transaction['transaction_price'],
-                        type='Price'),
-                    total_consideration=models.CurrencyAndAmount(
-                        amount=transaction['total_cost'],
-                        currency=transaction['transaction_currency']),
-                    source='Client',
-                    transaction_currency=transaction['transaction_currency'],
-                    properties={strategy_property_key: models.PropertyValue(label_value=transaction['strategy']),
-                        "Trade/default/TradeToPortfolioRate": models.PropertyValue(metric_value=models.MetricValue(1.0))}
-                ))
-        end = time.time()
-        print('batch tran create: ' + str(end - start))
-
-        # properties = {
-        #     strategy_property_key: models.PropertyValue(
-        #         label_value=transaction['strategy']),
-        #     'Trade/default/TradeToPortfolioRate': models.PropertyValue(
-        #         metric_value=models.MetricValue(1.0))
-        # }
-
-        # Call LUSID to upsert our transactions
-        transaction_response = cls.transaction_portfolios.upsert_transactions(
-            scope=analyst_scope_code,
-            code=transaction_portfolio_code,
-            transactions=batch_transaction_requests)
-
-        # Pretty print the response from LUSID
-        # prettyprint.transactions_response(
-        #    transaction_response,
-        #    analyst_scope_code,
-        #    transaction_portfolio_code)
-        end = time.time()
-        print('and then upsert: ' + str(end - start))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        time2 = time3 = time4 = time5 = 0
-
-        print('create analytic stores: ' + str(end - start))
-        print('create store request: ' + str(time2))
-        print('create store: ' + str(time3))
-        print('append day closes : ' + str(time4))
-        print('set analytics: ' + str(time5))
-        print('Analytics Set')
-
-        # now with multiple valuations at multiple dates, and multiple users, we need to send results to file
-        print_file = open("output.txt", "w")
-
-        # token timeout prevention
-        token_time = datetime.now()
-
-        # loop through the usernames and see how the aggregation varies by forSpec date range in the restrict policy
-        for name, user in user_list.items():
-
-            # we can now value the portfolio assuming different access levels and look at how the
-            # stocks have been traded.
-
-            # set up the APIs first using our user
-            cls.instruments = lusid.InstrumentsApi(user)
-            cls.transaction_portfolios = lusid.TransactionPortfoliosApi(user)
-            cls.property_definitions = lusid.PropertyDefinitionsApi(user)
-            cls.portfolios = lusid.PortfoliosApi(user)
-            cls.analytic_stores = lusid.AnalyticsStoresApi(user)
-            cls.aggregation = lusid.AggregationApi(user)
-
-            # value the portfolio daily
-            valuation_date = datetime(2017, 1, 1, tzinfo=pytz.utc)
-            while valuation_date < termination_date:
-                valuation_date += timedelta(days=1)
-                if (datetime.now() - token_time).seconds > 1500:
-                    # do we need to refresh token ? how do we get out the correct user to call api again?
-                    token_time = datetime.now()
-                # We wish to see valuations for each business date that has a close
-                # and we'd also like to force valuations for 1st of the month to demonstrate the test case
-                if valuation_date.day != 1:
-                    # check valuation date has a close
-                    format_date = datetime.strftime(valuation_date, '%b %d, %Y')
-                    if format_date not in analytics_store_dates:
-                        continue
-
-                print('Valuation date is: ' + str(valuation_date))
-
-                # Create our aggregation request
-                aggregation_request = models.AggregationRequest(
-                    recipe_id=models.ResourceId(
-                        scope=analyst_scope_code,
-                        code='default'),
-                    effective_at=valuation_date,
-                    metrics=[
-                        models.AggregateSpec(
-                            key='Holding/default/SubHoldingKey',
-                            op='Value'),
-                        models.AggregateSpec(
-                            key='Holding/default/Units',
-                            op='Sum'),
-                        models.AggregateSpec(
-                            key='Holding/default/Cost',
-                            op='Sum'),
-                        models.AggregateSpec(
-                            key='Holding/default/PV',
-                            op='Sum'),
-                        models.AggregateSpec(
-                            key='Holding/default/Price',
-                            op='Sum')
-                    ],
-                    group_by=[
-                        'Holding/default/SubHoldingKey'
-                    ])
-                try:
-                    # Call LUSID to aggregate across all of our portfolios for 'valuation_date'
-                    aggregated_portfolio = cls.aggregation.get_aggregation_by_portfolio(
-                        scope=analyst_scope_code,
-                        code=transaction_portfolio_code,
-                        request=aggregation_request)
-
-                except Exception as inst:
-                    if inst.error.status == 403:
-                        # entitlements rejects this, step to next date
-                        continue
-                    else:
-                        raise inst
-
-                query_params = models.TransactionQueryParameters(
-                    start_date=cls.effective_date,
-                    end_date=today_date,
-                    query_mode='TradeDate',
-                    show_cancelled_transactions=None)
-
-                transactions_response = cls.transaction_portfolios.build_transactions(
-                    scope=analyst_scope_code,
-                    code=transaction_portfolio_code,
-                    instrument_property_keys=['Instrument/default/Name'],
-                    parameters=query_params
-                )
-
-                end = time.time()
-                print('get aggregation: ' + str(end - start))
-                # prettyprint.aggregation_response_paper(aggregated_portfolio)
-
-
-                end = time.time()
-                print('build output trans: ' + str(end - start))
-
-                # Transactions response is a list of the trades we created
-                # In each output transaction, there is a realised gain loss attribute.
-                # These can be combined with position p&l to create an overall p&l.
-                # Group the transactions by LUID
-                output_store = {}
-
-                for output_transaction in transactions_response.values:
-                    if len(output_transaction.realised_gain_loss) > 0:      # not a ccy
-                        if output_transaction.instrument_uid not in list(output_store.keys()):
-                            output_store[output_transaction.instrument_uid] = {}
-                        realised_gain_loss = 0
-                        for item in output_transaction.realised_gain_loss:
-                            realised_gain_loss += item.realised_total.amount
-                        output_store[output_transaction.instrument_uid][output_transaction.transaction_date] = realised_gain_loss
-
-                # output_store now holds all the transactions by LUID.
-                # we can sum to the pv as shown earlier.
-
-                for instrument_name, instrument_identifiers in cls.instrument_universe.items():
-                    # get the trades from output_store, the end pv from aggregated_portfolio.data
-                    position_pl = 0
-                    trade_pl = 0
-                    if instrument_identifiers['LUID'] in output_store:
-                        trade_pl = sum(output_store[instrument_identifiers['LUID']].values())
-                        print('trade p&l: ' + str(trade_pl))
-                    for item in aggregated_portfolio.data:
-                        if item['Holding/default/SubHoldingKey'] == 'LusidInstrumentId=' + instrument_identifiers['LUID'] + '/USD':
-                            position_pl = item['Sum(Holding/default/PV)'] - item['Sum(Holding/default/Cost)']
-                    if position_pl != 0:
-                        print('pos p&l: ' + str(position_pl))
-
-                    print('Username: ' + name + ', p&l for ' + instrument_name + ': ' + str(trade_pl + position_pl))
-                    print('Username: ' + name + ', date: ' + str(valuation_date) + ' p&l for ' + instrument_name + ': ' + str(trade_pl + position_pl), file=print_file)
-        print_file.close()
-
-        # for result in aggregated_portfolio.data:
-        #     if 'Currency' in result['Holding/default/SubHoldingKey']:
-        #         continue
-        #     sign = result['Sum(Holding/default/Units)'] / abs(result['Sum(Holding/default/Units)'])
-        #     print('Instrument :' + result['Holding/default/SubHoldingKey'])
-        #     print('Units :' + str(round(result['Sum(Holding/default/Units)'], 0)))
-        #     print('Current Price :' + '£'  + str(
-        #         round(result['Sum(Holding/default/Price)'], 2)))
-        #     print(
-        #           'Present Value :' + '£' + str(round(result['Sum(Holding/default/PV)'], 2)))
-        #     print('Cost :' + '£' + str(round(result['Sum(Holding/default/Cost)'], 2)))
-        #     print('Return :' + str(round(((result['Sum(Holding/default/PV)'] - result[
-        #         'Sum(Holding/default/Cost)']) / result['Sum(Holding/default/Cost)']) * 100 * sign, 4)) + '%' + '\n')
-        #
-        #     total_cost += result['Sum(Holding/default/Cost)']
-        #     total_pv += result['Sum(Holding/default/PV)']
-
-        # print('TOTAL RETURN: ')
-        # print((round(((total_pv - total_cost) / total_cost) * 100, 4)))
-        # # create some test dates
-        # dec4th17 = datetime(2017, 12, 4, tzinfo=pytz.utc)
-        # dec5th17 = datetime(2017, 12, 5, tzinfo=pytz.utc)
-        # dec6th17 = datetime(2017, 12, 6, tzinfo=pytz.utc)
-
-        # tidy-up....need to delete policies and roles for re-running
-        #response = cls.shrine_client.api_roles_by_code_delete(role_code_allow)
-        #response = cls.shrine_client.api_roles_by_code_delete(role_code_restrict)
-        #response = cls.shrine_client.api_policies_by_code_delete(policy_code_restrict)
-        #response = cls.shrine_client.api_policies_by_code_delete(policy_code_allow)
 
     @classmethod
     def tearDownClass(cls):
@@ -733,7 +442,6 @@ class TestAccessShrine(TestCase):
                 name=instrument['instrument_name'],
                 identifiers={cls.FIGI_SCHEME: models.InstrumentIdValue(instrument['figi'])},
                 properties=[instrument_ticker])
-
 
         # Call LUSID to upsert our batch
         instrument_response = cls.instruments.upsert_instruments(requests=batch_upsert_request)
