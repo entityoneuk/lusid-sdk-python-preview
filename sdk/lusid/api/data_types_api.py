@@ -122,7 +122,6 @@ class DataTypesApi(object):
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
 
-
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501
 
@@ -217,12 +216,12 @@ class DataTypesApi(object):
             local_var_params[key] = val
         del local_var_params['kwargs']
         # verify the required parameter 'scope' is set
-        if ('scope' not in local_var_params or
-                local_var_params['scope'] is None):
+        if self.api_client.client_side_validation and ('scope' not in local_var_params or  # noqa: E501
+                                                        local_var_params['scope'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `scope` when calling `get_data_type`")  # noqa: E501
         # verify the required parameter 'code' is set
-        if ('code' not in local_var_params or
-                local_var_params['code'] is None):
+        if self.api_client.client_side_validation and ('code' not in local_var_params or  # noqa: E501
+                                                        local_var_params['code'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `code` when calling `get_data_type`")  # noqa: E501
 
         collection_formats = {}
@@ -234,7 +233,7 @@ class DataTypesApi(object):
             path_params['code'] = local_var_params['code']  # noqa: E501
 
         query_params = []
-        if 'as_at' in local_var_params:
+        if 'as_at' in local_var_params and local_var_params['as_at'] is not None:  # noqa: E501
             query_params.append(('asAt', local_var_params['as_at']))  # noqa: E501
 
         header_params = {}
@@ -246,7 +245,6 @@ class DataTypesApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501
@@ -346,12 +344,12 @@ class DataTypesApi(object):
             local_var_params[key] = val
         del local_var_params['kwargs']
         # verify the required parameter 'scope' is set
-        if ('scope' not in local_var_params or
-                local_var_params['scope'] is None):
+        if self.api_client.client_side_validation and ('scope' not in local_var_params or  # noqa: E501
+                                                        local_var_params['scope'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `scope` when calling `get_units_from_data_type`")  # noqa: E501
         # verify the required parameter 'code' is set
-        if ('code' not in local_var_params or
-                local_var_params['code'] is None):
+        if self.api_client.client_side_validation and ('code' not in local_var_params or  # noqa: E501
+                                                        local_var_params['code'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `code` when calling `get_units_from_data_type`")  # noqa: E501
 
         collection_formats = {}
@@ -363,12 +361,12 @@ class DataTypesApi(object):
             path_params['code'] = local_var_params['code']  # noqa: E501
 
         query_params = []
-        if 'units' in local_var_params:
+        if 'units' in local_var_params and local_var_params['units'] is not None:  # noqa: E501
             query_params.append(('units', local_var_params['units']))  # noqa: E501
             collection_formats['units'] = 'multi'  # noqa: E501
-        if 'filter' in local_var_params:
+        if 'filter' in local_var_params and local_var_params['filter'] is not None:  # noqa: E501
             query_params.append(('filter', local_var_params['filter']))  # noqa: E501
-        if 'as_at' in local_var_params:
+        if 'as_at' in local_var_params and local_var_params['as_at'] is not None:  # noqa: E501
             query_params.append(('asAt', local_var_params['as_at']))  # noqa: E501
 
         header_params = {}
@@ -380,7 +378,6 @@ class DataTypesApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501
@@ -484,8 +481,8 @@ class DataTypesApi(object):
             local_var_params[key] = val
         del local_var_params['kwargs']
         # verify the required parameter 'scope' is set
-        if ('scope' not in local_var_params or
-                local_var_params['scope'] is None):
+        if self.api_client.client_side_validation and ('scope' not in local_var_params or  # noqa: E501
+                                                        local_var_params['scope'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `scope` when calling `list_data_types`")  # noqa: E501
 
         collection_formats = {}
@@ -495,18 +492,18 @@ class DataTypesApi(object):
             path_params['scope'] = local_var_params['scope']  # noqa: E501
 
         query_params = []
-        if 'as_at' in local_var_params:
+        if 'as_at' in local_var_params and local_var_params['as_at'] is not None:  # noqa: E501
             query_params.append(('asAt', local_var_params['as_at']))  # noqa: E501
-        if 'include_system' in local_var_params:
+        if 'include_system' in local_var_params and local_var_params['include_system'] is not None:  # noqa: E501
             query_params.append(('includeSystem', local_var_params['include_system']))  # noqa: E501
-        if 'sort_by' in local_var_params:
+        if 'sort_by' in local_var_params and local_var_params['sort_by'] is not None:  # noqa: E501
             query_params.append(('sortBy', local_var_params['sort_by']))  # noqa: E501
             collection_formats['sortBy'] = 'multi'  # noqa: E501
-        if 'start' in local_var_params:
+        if 'start' in local_var_params and local_var_params['start'] is not None:  # noqa: E501
             query_params.append(('start', local_var_params['start']))  # noqa: E501
-        if 'limit' in local_var_params:
+        if 'limit' in local_var_params and local_var_params['limit'] is not None:  # noqa: E501
             query_params.append(('limit', local_var_params['limit']))  # noqa: E501
-        if 'filter' in local_var_params:
+        if 'filter' in local_var_params and local_var_params['filter'] is not None:  # noqa: E501
             query_params.append(('filter', local_var_params['filter']))  # noqa: E501
 
         header_params = {}
@@ -518,7 +515,6 @@ class DataTypesApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501
@@ -614,12 +610,12 @@ class DataTypesApi(object):
             local_var_params[key] = val
         del local_var_params['kwargs']
         # verify the required parameter 'scope' is set
-        if ('scope' not in local_var_params or
-                local_var_params['scope'] is None):
+        if self.api_client.client_side_validation and ('scope' not in local_var_params or  # noqa: E501
+                                                        local_var_params['scope'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `scope` when calling `update_data_type`")  # noqa: E501
         # verify the required parameter 'code' is set
-        if ('code' not in local_var_params or
-                local_var_params['code'] is None):
+        if self.api_client.client_side_validation and ('code' not in local_var_params or  # noqa: E501
+                                                        local_var_params['code'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `code` when calling `update_data_type`")  # noqa: E501
 
         collection_formats = {}
@@ -643,7 +639,6 @@ class DataTypesApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501

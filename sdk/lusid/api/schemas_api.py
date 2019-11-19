@@ -104,8 +104,8 @@ class SchemasApi(object):
             local_var_params[key] = val
         del local_var_params['kwargs']
         # verify the required parameter 'entity' is set
-        if ('entity' not in local_var_params or
-                local_var_params['entity'] is None):
+        if self.api_client.client_side_validation and ('entity' not in local_var_params or  # noqa: E501
+                                                        local_var_params['entity'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `entity` when calling `get_entity_schema`")  # noqa: E501
 
         collection_formats = {}
@@ -125,7 +125,6 @@ class SchemasApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501
@@ -224,10 +223,10 @@ class SchemasApi(object):
         path_params = {}
 
         query_params = []
-        if 'property_keys' in local_var_params:
+        if 'property_keys' in local_var_params and local_var_params['property_keys'] is not None:  # noqa: E501
             query_params.append(('propertyKeys', local_var_params['property_keys']))  # noqa: E501
             collection_formats['propertyKeys'] = 'multi'  # noqa: E501
-        if 'as_at' in local_var_params:
+        if 'as_at' in local_var_params and local_var_params['as_at'] is not None:  # noqa: E501
             query_params.append(('asAt', local_var_params['as_at']))  # noqa: E501
 
         header_params = {}
@@ -239,7 +238,6 @@ class SchemasApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501
@@ -340,12 +338,12 @@ class SchemasApi(object):
         path_params = {}
 
         query_params = []
-        if 'sort_by' in local_var_params:
+        if 'sort_by' in local_var_params and local_var_params['sort_by'] is not None:  # noqa: E501
             query_params.append(('sortBy', local_var_params['sort_by']))  # noqa: E501
             collection_formats['sortBy'] = 'multi'  # noqa: E501
-        if 'start' in local_var_params:
+        if 'start' in local_var_params and local_var_params['start'] is not None:  # noqa: E501
             query_params.append(('start', local_var_params['start']))  # noqa: E501
-        if 'limit' in local_var_params:
+        if 'limit' in local_var_params and local_var_params['limit'] is not None:  # noqa: E501
             query_params.append(('limit', local_var_params['limit']))  # noqa: E501
 
         header_params = {}
@@ -357,7 +355,6 @@ class SchemasApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501
@@ -462,7 +459,6 @@ class SchemasApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501

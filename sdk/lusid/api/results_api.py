@@ -112,24 +112,24 @@ class ResultsApi(object):
             local_var_params[key] = val
         del local_var_params['kwargs']
         # verify the required parameter 'entity_scope' is set
-        if ('entity_scope' not in local_var_params or
-                local_var_params['entity_scope'] is None):
+        if self.api_client.client_side_validation and ('entity_scope' not in local_var_params or  # noqa: E501
+                                                        local_var_params['entity_scope'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `entity_scope` when calling `get_results`")  # noqa: E501
         # verify the required parameter 'entity_code' is set
-        if ('entity_code' not in local_var_params or
-                local_var_params['entity_code'] is None):
+        if self.api_client.client_side_validation and ('entity_code' not in local_var_params or  # noqa: E501
+                                                        local_var_params['entity_code'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `entity_code` when calling `get_results`")  # noqa: E501
         # verify the required parameter 'calculation_scope' is set
-        if ('calculation_scope' not in local_var_params or
-                local_var_params['calculation_scope'] is None):
+        if self.api_client.client_side_validation and ('calculation_scope' not in local_var_params or  # noqa: E501
+                                                        local_var_params['calculation_scope'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `calculation_scope` when calling `get_results`")  # noqa: E501
         # verify the required parameter 'calculation_code' is set
-        if ('calculation_code' not in local_var_params or
-                local_var_params['calculation_code'] is None):
+        if self.api_client.client_side_validation and ('calculation_code' not in local_var_params or  # noqa: E501
+                                                        local_var_params['calculation_code'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `calculation_code` when calling `get_results`")  # noqa: E501
         # verify the required parameter 'effective_at' is set
-        if ('effective_at' not in local_var_params or
-                local_var_params['effective_at'] is None):
+        if self.api_client.client_side_validation and ('effective_at' not in local_var_params or  # noqa: E501
+                                                        local_var_params['effective_at'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `effective_at` when calling `get_results`")  # noqa: E501
 
         collection_formats = {}
@@ -157,7 +157,6 @@ class ResultsApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501
@@ -266,7 +265,6 @@ class ResultsApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501

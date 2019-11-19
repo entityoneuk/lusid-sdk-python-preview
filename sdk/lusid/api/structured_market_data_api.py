@@ -106,12 +106,12 @@ class StructuredMarketDataApi(object):
             local_var_params[key] = val
         del local_var_params['kwargs']
         # verify the required parameter 'scope' is set
-        if ('scope' not in local_var_params or
-                local_var_params['scope'] is None):
+        if self.api_client.client_side_validation and ('scope' not in local_var_params or  # noqa: E501
+                                                        local_var_params['scope'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `scope` when calling `delete_structured_market_data`")  # noqa: E501
         # verify the required parameter 'structured_data_ids' is set
-        if ('structured_data_ids' not in local_var_params or
-                local_var_params['structured_data_ids'] is None):
+        if self.api_client.client_side_validation and ('structured_data_ids' not in local_var_params or  # noqa: E501
+                                                        local_var_params['structured_data_ids'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `structured_data_ids` when calling `delete_structured_market_data`")  # noqa: E501
 
         collection_formats = {}
@@ -133,7 +133,6 @@ class StructuredMarketDataApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501
@@ -233,12 +232,12 @@ class StructuredMarketDataApi(object):
             local_var_params[key] = val
         del local_var_params['kwargs']
         # verify the required parameter 'scope' is set
-        if ('scope' not in local_var_params or
-                local_var_params['scope'] is None):
+        if self.api_client.client_side_validation and ('scope' not in local_var_params or  # noqa: E501
+                                                        local_var_params['scope'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `scope` when calling `get_structured_market_data`")  # noqa: E501
         # verify the required parameter 'structured_data_ids' is set
-        if ('structured_data_ids' not in local_var_params or
-                local_var_params['structured_data_ids'] is None):
+        if self.api_client.client_side_validation and ('structured_data_ids' not in local_var_params or  # noqa: E501
+                                                        local_var_params['structured_data_ids'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `structured_data_ids` when calling `get_structured_market_data`")  # noqa: E501
 
         collection_formats = {}
@@ -248,11 +247,11 @@ class StructuredMarketDataApi(object):
             path_params['scope'] = local_var_params['scope']  # noqa: E501
 
         query_params = []
-        if 'effective_at' in local_var_params:
+        if 'effective_at' in local_var_params and local_var_params['effective_at'] is not None:  # noqa: E501
             query_params.append(('effectiveAt', local_var_params['effective_at']))  # noqa: E501
-        if 'as_at' in local_var_params:
+        if 'as_at' in local_var_params and local_var_params['as_at'] is not None:  # noqa: E501
             query_params.append(('asAt', local_var_params['as_at']))  # noqa: E501
-        if 'max_age' in local_var_params:
+        if 'max_age' in local_var_params and local_var_params['max_age'] is not None:  # noqa: E501
             query_params.append(('maxAge', local_var_params['max_age']))  # noqa: E501
 
         header_params = {}
@@ -266,7 +265,6 @@ class StructuredMarketDataApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501
@@ -360,12 +358,12 @@ class StructuredMarketDataApi(object):
             local_var_params[key] = val
         del local_var_params['kwargs']
         # verify the required parameter 'scope' is set
-        if ('scope' not in local_var_params or
-                local_var_params['scope'] is None):
+        if self.api_client.client_side_validation and ('scope' not in local_var_params or  # noqa: E501
+                                                        local_var_params['scope'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `scope` when calling `upsert_structured_market_data`")  # noqa: E501
         # verify the required parameter 'structured_data' is set
-        if ('structured_data' not in local_var_params or
-                local_var_params['structured_data'] is None):
+        if self.api_client.client_side_validation and ('structured_data' not in local_var_params or  # noqa: E501
+                                                        local_var_params['structured_data'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `structured_data` when calling `upsert_structured_market_data`")  # noqa: E501
 
         collection_formats = {}
@@ -387,7 +385,6 @@ class StructuredMarketDataApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501

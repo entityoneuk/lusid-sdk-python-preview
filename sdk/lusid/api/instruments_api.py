@@ -106,12 +106,12 @@ class InstrumentsApi(object):
             local_var_params[key] = val
         del local_var_params['kwargs']
         # verify the required parameter 'identifier_type' is set
-        if ('identifier_type' not in local_var_params or
-                local_var_params['identifier_type'] is None):
+        if self.api_client.client_side_validation and ('identifier_type' not in local_var_params or  # noqa: E501
+                                                        local_var_params['identifier_type'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `identifier_type` when calling `delete_instrument`")  # noqa: E501
         # verify the required parameter 'identifier' is set
-        if ('identifier' not in local_var_params or
-                local_var_params['identifier'] is None):
+        if self.api_client.client_side_validation and ('identifier' not in local_var_params or  # noqa: E501
+                                                        local_var_params['identifier'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `identifier` when calling `delete_instrument`")  # noqa: E501
 
         collection_formats = {}
@@ -133,7 +133,6 @@ class InstrumentsApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501
@@ -231,16 +230,16 @@ class InstrumentsApi(object):
             local_var_params[key] = val
         del local_var_params['kwargs']
         # verify the required parameter 'identifier_type' is set
-        if ('identifier_type' not in local_var_params or
-                local_var_params['identifier_type'] is None):
+        if self.api_client.client_side_validation and ('identifier_type' not in local_var_params or  # noqa: E501
+                                                        local_var_params['identifier_type'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `identifier_type` when calling `delete_instrument_properties`")  # noqa: E501
         # verify the required parameter 'identifier' is set
-        if ('identifier' not in local_var_params or
-                local_var_params['identifier'] is None):
+        if self.api_client.client_side_validation and ('identifier' not in local_var_params or  # noqa: E501
+                                                        local_var_params['identifier'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `identifier` when calling `delete_instrument_properties`")  # noqa: E501
         # verify the required parameter 'property_keys' is set
-        if ('property_keys' not in local_var_params or
-                local_var_params['property_keys'] is None):
+        if self.api_client.client_side_validation and ('property_keys' not in local_var_params or  # noqa: E501
+                                                        local_var_params['property_keys'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `property_keys` when calling `delete_instrument_properties`")  # noqa: E501
 
         collection_formats = {}
@@ -252,7 +251,7 @@ class InstrumentsApi(object):
             path_params['identifier'] = local_var_params['identifier']  # noqa: E501
 
         query_params = []
-        if 'effective_at' in local_var_params:
+        if 'effective_at' in local_var_params and local_var_params['effective_at'] is not None:  # noqa: E501
             query_params.append(('effectiveAt', local_var_params['effective_at']))  # noqa: E501
 
         header_params = {}
@@ -266,7 +265,6 @@ class InstrumentsApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501
@@ -366,12 +364,12 @@ class InstrumentsApi(object):
             local_var_params[key] = val
         del local_var_params['kwargs']
         # verify the required parameter 'identifier_type' is set
-        if ('identifier_type' not in local_var_params or
-                local_var_params['identifier_type'] is None):
+        if self.api_client.client_side_validation and ('identifier_type' not in local_var_params or  # noqa: E501
+                                                        local_var_params['identifier_type'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `identifier_type` when calling `get_instrument`")  # noqa: E501
         # verify the required parameter 'identifier' is set
-        if ('identifier' not in local_var_params or
-                local_var_params['identifier'] is None):
+        if self.api_client.client_side_validation and ('identifier' not in local_var_params or  # noqa: E501
+                                                        local_var_params['identifier'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `identifier` when calling `get_instrument`")  # noqa: E501
 
         collection_formats = {}
@@ -383,11 +381,11 @@ class InstrumentsApi(object):
             path_params['identifier'] = local_var_params['identifier']  # noqa: E501
 
         query_params = []
-        if 'effective_at' in local_var_params:
+        if 'effective_at' in local_var_params and local_var_params['effective_at'] is not None:  # noqa: E501
             query_params.append(('effectiveAt', local_var_params['effective_at']))  # noqa: E501
-        if 'as_at' in local_var_params:
+        if 'as_at' in local_var_params and local_var_params['as_at'] is not None:  # noqa: E501
             query_params.append(('asAt', local_var_params['as_at']))  # noqa: E501
-        if 'property_keys' in local_var_params:
+        if 'property_keys' in local_var_params and local_var_params['property_keys'] is not None:  # noqa: E501
             query_params.append(('propertyKeys', local_var_params['property_keys']))  # noqa: E501
             collection_formats['propertyKeys'] = 'multi'  # noqa: E501
 
@@ -400,7 +398,6 @@ class InstrumentsApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501
@@ -506,7 +503,6 @@ class InstrumentsApi(object):
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
 
-
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501
 
@@ -605,12 +601,12 @@ class InstrumentsApi(object):
             local_var_params[key] = val
         del local_var_params['kwargs']
         # verify the required parameter 'identifier_type' is set
-        if ('identifier_type' not in local_var_params or
-                local_var_params['identifier_type'] is None):
+        if self.api_client.client_side_validation and ('identifier_type' not in local_var_params or  # noqa: E501
+                                                        local_var_params['identifier_type'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `identifier_type` when calling `get_instruments`")  # noqa: E501
         # verify the required parameter 'identifiers' is set
-        if ('identifiers' not in local_var_params or
-                local_var_params['identifiers'] is None):
+        if self.api_client.client_side_validation and ('identifiers' not in local_var_params or  # noqa: E501
+                                                        local_var_params['identifiers'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `identifiers` when calling `get_instruments`")  # noqa: E501
 
         collection_formats = {}
@@ -618,13 +614,13 @@ class InstrumentsApi(object):
         path_params = {}
 
         query_params = []
-        if 'identifier_type' in local_var_params:
+        if 'identifier_type' in local_var_params and local_var_params['identifier_type'] is not None:  # noqa: E501
             query_params.append(('identifierType', local_var_params['identifier_type']))  # noqa: E501
-        if 'effective_at' in local_var_params:
+        if 'effective_at' in local_var_params and local_var_params['effective_at'] is not None:  # noqa: E501
             query_params.append(('effectiveAt', local_var_params['effective_at']))  # noqa: E501
-        if 'as_at' in local_var_params:
+        if 'as_at' in local_var_params and local_var_params['as_at'] is not None:  # noqa: E501
             query_params.append(('asAt', local_var_params['as_at']))  # noqa: E501
-        if 'property_keys' in local_var_params:
+        if 'property_keys' in local_var_params and local_var_params['property_keys'] is not None:  # noqa: E501
             query_params.append(('propertyKeys', local_var_params['property_keys']))  # noqa: E501
             collection_formats['propertyKeys'] = 'multi'  # noqa: E501
 
@@ -639,7 +635,6 @@ class InstrumentsApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501
@@ -750,22 +745,22 @@ class InstrumentsApi(object):
         path_params = {}
 
         query_params = []
-        if 'as_at' in local_var_params:
+        if 'as_at' in local_var_params and local_var_params['as_at'] is not None:  # noqa: E501
             query_params.append(('asAt', local_var_params['as_at']))  # noqa: E501
-        if 'effective_at' in local_var_params:
+        if 'effective_at' in local_var_params and local_var_params['effective_at'] is not None:  # noqa: E501
             query_params.append(('effectiveAt', local_var_params['effective_at']))  # noqa: E501
-        if 'page' in local_var_params:
+        if 'page' in local_var_params and local_var_params['page'] is not None:  # noqa: E501
             query_params.append(('page', local_var_params['page']))  # noqa: E501
-        if 'sort_by' in local_var_params:
+        if 'sort_by' in local_var_params and local_var_params['sort_by'] is not None:  # noqa: E501
             query_params.append(('sortBy', local_var_params['sort_by']))  # noqa: E501
             collection_formats['sortBy'] = 'multi'  # noqa: E501
-        if 'start' in local_var_params:
+        if 'start' in local_var_params and local_var_params['start'] is not None:  # noqa: E501
             query_params.append(('start', local_var_params['start']))  # noqa: E501
-        if 'limit' in local_var_params:
+        if 'limit' in local_var_params and local_var_params['limit'] is not None:  # noqa: E501
             query_params.append(('limit', local_var_params['limit']))  # noqa: E501
-        if 'filter' in local_var_params:
+        if 'filter' in local_var_params and local_var_params['filter'] is not None:  # noqa: E501
             query_params.append(('filter', local_var_params['filter']))  # noqa: E501
-        if 'instrument_property_keys' in local_var_params:
+        if 'instrument_property_keys' in local_var_params and local_var_params['instrument_property_keys'] is not None:  # noqa: E501
             query_params.append(('instrumentPropertyKeys', local_var_params['instrument_property_keys']))  # noqa: E501
             collection_formats['instrumentPropertyKeys'] = 'multi'  # noqa: E501
 
@@ -778,7 +773,6 @@ class InstrumentsApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501
@@ -874,16 +868,16 @@ class InstrumentsApi(object):
             local_var_params[key] = val
         del local_var_params['kwargs']
         # verify the required parameter 'identifier_type' is set
-        if ('identifier_type' not in local_var_params or
-                local_var_params['identifier_type'] is None):
+        if self.api_client.client_side_validation and ('identifier_type' not in local_var_params or  # noqa: E501
+                                                        local_var_params['identifier_type'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `identifier_type` when calling `update_instrument_identifier`")  # noqa: E501
         # verify the required parameter 'identifier' is set
-        if ('identifier' not in local_var_params or
-                local_var_params['identifier'] is None):
+        if self.api_client.client_side_validation and ('identifier' not in local_var_params or  # noqa: E501
+                                                        local_var_params['identifier'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `identifier` when calling `update_instrument_identifier`")  # noqa: E501
         # verify the required parameter 'request' is set
-        if ('request' not in local_var_params or
-                local_var_params['request'] is None):
+        if self.api_client.client_side_validation and ('request' not in local_var_params or  # noqa: E501
+                                                        local_var_params['request'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `request` when calling `update_instrument_identifier`")  # noqa: E501
 
         collection_formats = {}
@@ -907,7 +901,6 @@ class InstrumentsApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501
@@ -999,8 +992,8 @@ class InstrumentsApi(object):
             local_var_params[key] = val
         del local_var_params['kwargs']
         # verify the required parameter 'instruments' is set
-        if ('instruments' not in local_var_params or
-                local_var_params['instruments'] is None):
+        if self.api_client.client_side_validation and ('instruments' not in local_var_params or  # noqa: E501
+                                                        local_var_params['instruments'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `instruments` when calling `upsert_instruments`")  # noqa: E501
 
         collection_formats = {}
@@ -1020,7 +1013,6 @@ class InstrumentsApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501
@@ -1112,8 +1104,8 @@ class InstrumentsApi(object):
             local_var_params[key] = val
         del local_var_params['kwargs']
         # verify the required parameter 'instrument_properties' is set
-        if ('instrument_properties' not in local_var_params or
-                local_var_params['instrument_properties'] is None):
+        if self.api_client.client_side_validation and ('instrument_properties' not in local_var_params or  # noqa: E501
+                                                        local_var_params['instrument_properties'] is None):  # noqa: E501
             raise ApiValueError("Missing the required parameter `instrument_properties` when calling `upsert_instruments_properties`")  # noqa: E501
 
         collection_formats = {}
@@ -1133,7 +1125,6 @@ class InstrumentsApi(object):
         # HTTP header `Accept`
         header_params['Accept'] = self.api_client.select_header_accept(
             ['text/plain', 'application/json', 'text/json'])  # noqa: E501
-
 
         # Authentication setting
         auth_settings = ['oauth2']  # noqa: E501
