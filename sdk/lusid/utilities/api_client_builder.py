@@ -6,6 +6,7 @@ import lusid
 from .api_configuration_loader import ApiConfigurationLoader
 from .refreshing_token import RefreshingToken
 
+# TODO: Cocoon library needs to be updated to set a proxy (and ideally use urllib3 - same as LUSID)
 
 class ApiClientBuilder:
 
@@ -32,6 +33,8 @@ class ApiClientBuilder:
         headers = {"Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded"}
 
         # Make our authentication request
+        # TODO Set the proxy here (when calling Okta)
+        # TODO It appears that this might work if http_proxy environment variable is set 
         okta_response = requests.post(configuration.token_url, data=token_request_body, headers=headers)
 
         if okta_response_handler is not None:
@@ -55,5 +58,7 @@ class ApiClientBuilder:
         config = lusid.Configuration()
         config.access_token = api_token
         config.host = configuration.api_url
-
+        
+        # TODO Set the proxy and ssl_ca_cert here
+        # TODO It appears that environment variables don't apply in the urllib3 that the SDK uses
         return lusid.ApiClient(config, header_name="X-LUSID-Application", header_value=configuration.app_name)
